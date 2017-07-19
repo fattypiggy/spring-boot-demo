@@ -1,7 +1,12 @@
 package com.example.Controller;
 
 import com.example.Entity.Girl;
-import com.example.Repository.GirlReposotory;
+import com.example.Entity.Result;
+import com.example.Repository.GirlRepository;
+import com.example.Service.GirlService;
+import com.example.Util.GirlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +21,13 @@ import java.util.List;
 public class GirlController {
 
     @Autowired
-    private GirlReposotory girlReposotory;
+    private GirlRepository girlRepository;
 
+
+    @Autowired
+    private GirlService girlService;
+
+    private static final Logger logger = LoggerFactory.getLogger(GirlController.class);
 
     /**
      * Get ALL girls
@@ -26,7 +36,7 @@ public class GirlController {
      */
     @GetMapping("/girls")
     public List<Girl> getList() {
-        return girlReposotory.findAll();
+        return girlRepository.findAll();
     }
 
     /**
@@ -35,13 +45,14 @@ public class GirlController {
      * @return
      */
     @PostMapping("/girls")
-    public Girl addGirl(@Valid Girl girl, BindingResult bindingResult) {
+    public Result<Girl> addGirl(@Valid Girl girl, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
             System.err.println(bindingResult.getFieldError().getDefaultMessage());
-            return null;
+            return GirlUtils.error(-1,bindingResult.getFieldError().getDefaultMessage());
+//            return null;
         }
-        return girlReposotory.save(girl);
+        return GirlUtils.success(girlRepository.save(girl));
     }
 
     @PutMapping("/girl/{id}")
@@ -53,11 +64,26 @@ public class GirlController {
         girl.setAge(age);
         girl.setCupSize(cupSize);
 
-        return girlReposotory.save(girl);
+        return girlRepository.save(girl);
     }
 
     @GetMapping("/girl/{id}")
     public Girl getGirl(@PathVariable Integer id) {
-        return girlReposotory.findOne(id);
+        return girlRepository.findOne(id);
+    }
+
+    @GetMapping("/girls/age/{age}")
+    public List<Girl> getListByAge(@PathVariable Integer age) {
+        return girlRepository.findByAge(age);
+    }
+
+    @DeleteMapping("/girl/{id}")
+    public void deleteGirl(@PathVariable Integer id) {
+        girlRepository.delete(id);
+    }
+
+    @GetMapping("/girl/{id}/age")
+    public void getAge(@PathVariable Integer id) throws Exception {
+        girlService.getAge(id);
     }
 }
